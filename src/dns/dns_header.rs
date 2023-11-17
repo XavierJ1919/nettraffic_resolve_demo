@@ -1,15 +1,18 @@
 use crate::*;
 use crate::byte_packet::BytePacketBuffer;
 
+use dns::question::*;
+use dns::resource_record::*;
+
 // type Error = Box<dyn std::error::Error>;
 // type Result<T> = std::result::Result<T, Error>;
 
 struct DnsPacket {
     DnsHeader: DnsHeader,
-    Question: DnsQuestion,
-    Answer: DnsAnswer,
-    Authority: ,
-    Additional,
+    Question: Vec<DnsQuestion>,
+    Answer: Vec<RRecord>,
+    Authority: Vec<RRecord>,
+    Additional: Vec<RRecord>,
 }
 struct DnsHeader {
     id: u16,
@@ -20,40 +23,6 @@ struct DnsHeader {
     additional_records: u16,
 }
 
-struct DnsQuestion {
-    qname: String,
-    qtype: QueryType,
-    qclass: u16,
-}
-impl DnsQuestion {
-    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), Err> {
-        self.qname = buffer.read_qname()?;
-        self.qtype = QueryType::from_num(buffer.read_u16()?);
-        self.qclass = 0x01;
-        Ok(())
-    }
-}
-
-enum QueryType {
-    UNKNOWN(u16),
-    A,
-    NS,
-    MX,
-    CNAME,
-    AAAA,
-}
-impl QueryType {
-    pub fn from_num(num: u16) -> QueryType {
-        match num {
-            1 => QueryType::A,
-            2 => QueryType::NS,
-            5 => QueryType::CNAME,
-            15 => QueryType::MX,
-            28 => QueryType::AAAA,
-            _ => QueryType::UNKNOWN(num),
-        }
-    }
-}
 
 struct Flags {
     qr: bool,

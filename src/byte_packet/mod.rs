@@ -23,6 +23,10 @@ impl BytePacketBuffer {
         let res = ((self.read_one_byte()? as u16) << 8) | (self.read_one_byte()? as u16);
         Ok(res)
     }
+    pub fn read_u32(&mut self) -> Result<u32, Err> {
+        let res = ((self.read_u16()? as u32) << 16) | (self.read_u16()? as u32);
+        Ok(res)
+    }
     pub fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8], Err> {
         Ok(&self.buf[start..(start + len) as usize])
     }
@@ -42,8 +46,8 @@ impl BytePacketBuffer {
             pos += 1;
             qname.push_str(delim);
 
-            let qname_piece = self.get_range(pos, len as usize)?;
-            qname.push_str(&String::from_utf8_lossy(qname_piece).to_lowercase());
+            let qname_label = self.get_range(pos, len as usize)?;
+            qname.push_str(&String::from_utf8_lossy(qname_label).to_lowercase());
             delim = ".";
             pos += len as usize;
         }
