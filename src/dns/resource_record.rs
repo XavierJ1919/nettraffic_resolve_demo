@@ -1,8 +1,10 @@
+use crate::*;
 use std::net::Ipv4Addr;
 use crate::byte_packet::BytePacketBuffer;
 use crate::dns::question::{DnsQuestion, QueryType};
 
 // resource record
+#[derive(Debug)]
 pub struct RRecord {
     name: String,
     record_type: QueryType,
@@ -12,12 +14,12 @@ pub struct RRecord {
     rdata: RespData,
 }
 impl RRecord {
-    fn read (buffer: &mut BytePacketBuffer) -> Result<RRecord, Err> {
+    pub fn read (buffer: &mut BytePacketBuffer) -> Result<RRecord, Error> {
         let mut domain = String::new();
         buffer.read_qname(&mut domain)?;
 
         let qtype_num = buffer.read_u16()?;
-        let record_type = QueryType::from_num(qtype_num)?;
+        let record_type = QueryType::from_num(qtype_num);
         let class = buffer.read_u16()?;
         let ttl = ((buffer.read_u16()? as u32) << 16) | (buffer.read_u16()? as u32);
         let rdlength = buffer.read_u16()?;
@@ -56,6 +58,13 @@ impl RRecord {
                     exchange
                 }
             },
+            _ => {
+                let mut name = String::new();
+                buffer.read_qname(&mut name)?;
+                RespData::CNAME {
+                    name
+                }
+            }
         };
         let res = RRecord {
             name: domain,
@@ -69,6 +78,7 @@ impl RRecord {
     }
 }
 
+#[derive(Debug)]
 enum RespData {
     A {
         ipAddr: Ipv4Addr,

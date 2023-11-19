@@ -1,29 +1,17 @@
 use crate::*;
 use crate::byte_packet::BytePacketBuffer;
 
-use dns::question::*;
-use dns::resource_record::*;
-
-// type Error = Box<dyn std::error::Error>;
-// type Result<T> = std::result::Result<T, Error>;
-
-struct DnsPacket {
-    DnsHeader: DnsHeader,
-    Question: Vec<DnsQuestion>,
-    Answer: Vec<RRecord>,
-    Authority: Vec<RRecord>,
-    Additional: Vec<RRecord>,
-}
-struct DnsHeader {
+#[derive(Debug)]
+pub struct DnsHeader {
     id: u16,
     flags: Flags,
-    questions: u16,
-    answers: u16,
-    authority_records: u16,
-    additional_records: u16,
+    pub questions: u16,
+    pub answers: u16,
+    pub authority_records: u16,
+    pub additional_records: u16,
 }
 
-
+#[derive(Debug)]
 struct Flags {
     qr: bool,
     opcode: u8,
@@ -34,7 +22,22 @@ struct Flags {
     Zero: u8,
     ResCode: ResCode,
 }
+impl Flags {
+    fn new() -> Flags {
+        Flags {
+            qr: false,
+            opcode: 0,
+            aa: false,
+            tc: false,
+            rd: false,
+            ra: false,
+            Zero: 0,
+            ResCode: ResCode::NOERROR,
+        }
+    }
+}
 
+#[derive(Debug)]
 enum ResCode {
     NOERROR = 0,
     FORMAT_ERROR = 1,
@@ -57,7 +60,17 @@ impl ResCode {
 }
 
 impl DnsHeader {
-    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), Err> {
+    pub fn new() -> DnsHeader {
+        DnsHeader {
+            id: 0,
+            flags: Flags::new(),
+            questions: 0,
+            answers: 0,
+            authority_records: 0,
+            additional_records: 0,
+        }
+    }
+    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), Error> {
         self.id = buffer.read_u16()?;
         let flags = buffer.read_u16()?;
         self.flags.ResCode = ResCode::from_num(flags & 0x000F);

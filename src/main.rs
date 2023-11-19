@@ -1,6 +1,8 @@
+type Error = Box<dyn std::error::Error>;
+
 mod byte_packet;
 mod dns;
 
 fn main() {
-    println!("Hello, world!");
+    dns::resolve_dns();
 }
